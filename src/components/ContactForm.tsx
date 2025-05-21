@@ -13,9 +13,11 @@ import {
   CardHeader,
   CardTitle 
 } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 const ContactForm = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,15 +26,46 @@ const ContactForm = () => {
     message: ""
   });
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // In a real app, this would call an API
-    // For now, just show a toast
-    toast({
-      title: "تم إرسال الرسالة",
-      description: "سنقوم بالرد عليك في أقرب وقت ممكن.",
-    });
+    try {
+      // Insert the contact request into the database
+      const { data, error } = await supabase
+        .from('contact_requests')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          message: formData.message
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم إرسال الرسالة",
+        description: "سنقوم بالرد عليك في أقرب وقت ممكن.",
+      });
+      
+      // Reset form after successful submission
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: ""
+      });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "لم نتمكن من إرسال رسالتك. الرجاء المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -120,8 +153,9 @@ const ContactForm = () => {
           <Button 
             type="submit" 
             className="w-full bg-estate-primary hover:bg-estate-primary/90"
+            disabled={isSubmitting}
           >
-            إرسال الرسالة
+            {isSubmitting ? "جاري الإرسال..." : "إرسال الرسالة"}
           </Button>
         </CardFooter>
       </form>

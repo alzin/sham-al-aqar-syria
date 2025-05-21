@@ -1,12 +1,28 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, User, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, User, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="border-b bg-white py-4">
@@ -60,12 +76,49 @@ const Header = () => {
               <Search className="h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/login">
-            <Button variant="outline" className="flex items-center">
-              <User className="h-5 w-5 ml-2" />
-              <span>تسجيل الدخول</span>
-            </Button>
-          </Link>
+          
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center">
+                  <User className="h-5 w-5 ml-2" />
+                  <span>حسابي</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>حسابي</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="w-full cursor-pointer">
+                    الملف الشخصي
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/my-properties" className="w-full cursor-pointer">
+                    عقاراتي
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/favorites" className="w-full cursor-pointer">
+                    المفضلة
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                  <LogOut className="h-4 w-4 ml-2" />
+                  تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/login">
+              <Button variant="outline" className="flex items-center">
+                <User className="h-5 w-5 ml-2" />
+                <span>تسجيل الدخول</span>
+              </Button>
+            </Link>
+          )}
+          
           <Link to="/add-property">
             <Button className="bg-estate-primary hover:bg-estate-primary/90">
               إضافة عقار
@@ -106,12 +159,37 @@ const Header = () => {
               >
                 اتصل بنا
               </Link>
+              
               <div className="pt-6 border-t">
-                <Link to="/login">
-                  <Button className="w-full bg-estate-primary hover:bg-estate-primary/90 mb-4">
-                    تسجيل الدخول
-                  </Button>
-                </Link>
+                {user ? (
+                  <>
+                    <Link to="/profile">
+                      <Button className="w-full bg-estate-primary hover:bg-estate-primary/90 mb-4">
+                        الملف الشخصي
+                      </Button>
+                    </Link>
+                    <Link to="/my-properties">
+                      <Button className="w-full bg-estate-secondary text-estate-dark hover:bg-estate-secondary/90 mb-4">
+                        عقاراتي
+                      </Button>
+                    </Link>
+                    <Button 
+                      onClick={handleSignOut} 
+                      variant="outline" 
+                      className="w-full mb-4"
+                    >
+                      <LogOut className="h-4 w-4 ml-2" />
+                      تسجيل الخروج
+                    </Button>
+                  </>
+                ) : (
+                  <Link to="/login">
+                    <Button className="w-full bg-estate-primary hover:bg-estate-primary/90 mb-4">
+                      تسجيل الدخول
+                    </Button>
+                  </Link>
+                )}
+                
                 <Link to="/add-property">
                   <Button className="w-full bg-estate-secondary text-estate-dark hover:bg-estate-secondary/90">
                     إضافة عقار

@@ -1,10 +1,12 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -16,7 +18,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
+  const { user, signIn, signUp } = useAuth();
   const { toast } = useToast();
+  
+  // Loading states
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   
   // Login form state
   const [loginCredentials, setLoginCredentials] = useState({
@@ -33,18 +41,28 @@ const RegisterForm = () => {
     confirmPassword: ""
   });
   
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  // If user is already logged in, redirect to home page
+  if (user) {
+    navigate("/");
+    return null;
+  }
+  
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoginLoading(true);
     
-    // In a real app, this would call an API
-    // For now, just show a toast
-    toast({
-      title: "تم تسجيل الدخول",
-      description: "تم تسجيل دخولك بنجاح!",
-    });
+    try {
+      await signIn(loginCredentials.email, loginCredentials.password);
+      navigate("/");
+    } catch (error) {
+      // Error handling is done in the AuthContext
+      console.error("Login error:", error);
+    } finally {
+      setIsLoginLoading(false);
+    }
   };
   
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (registerData.password !== registerData.confirmPassword) {
@@ -56,12 +74,43 @@ const RegisterForm = () => {
       return;
     }
     
-    // In a real app, this would call an API
-    // For now, just show a toast
-    toast({
-      title: "تم إنشاء الحساب",
-      description: "تم إنشاء حسابك بنجاح!",
-    });
+    setIsRegisterLoading(true);
+    
+    try {
+      // Split full name into first and last name
+      const nameParts = registerData.name.trim().split(/\s+/);
+      const firstName = nameParts.shift() || '';
+      const lastName = nameParts.join(' ');
+      
+      await signUp(
+        registerData.email, 
+        registerData.password,
+        {
+          first_name: firstName,
+          last_name: lastName || undefined,
+          phone: registerData.phone || undefined
+        }
+      );
+      
+      // Reset the form
+      setRegisterData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: ""
+      });
+      
+      // Switch to login tab after successful registration
+      const loginTab = document.querySelector('[data-state="inactive"][data-value="login"]') as HTMLElement;
+      if (loginTab) loginTab.click();
+      
+    } catch (error) {
+      // Error handling is done in the AuthContext
+      console.error("Registration error:", error);
+    } finally {
+      setIsRegisterLoading(false);
+    }
   };
   
   return (
@@ -125,8 +174,16 @@ const RegisterForm = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-estate-primary hover:bg-estate-primary/90"
+                disabled={isLoginLoading}
               >
-                تسجيل الدخول
+                {isLoginLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    جاري تسجيل الدخول...
+                  </>
+                ) : (
+                  "تسجيل الدخول"
+                )}
               </Button>
             </CardFooter>
           </form>
@@ -175,7 +232,6 @@ const RegisterForm = () => {
                 <Input 
                   id="phone" 
                   type="tel"
-                  required
                   value={registerData.phone}
                   onChange={(e) => setRegisterData({
                     ...registerData,
@@ -217,8 +273,16 @@ const RegisterForm = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-estate-primary hover:bg-estate-primary/90"
+                disabled={isRegisterLoading}
               >
-                إنشاء حساب
+                {isRegisterLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    جاري إنشاء الحساب...
+                  </>
+                ) : (
+                  "إنشاء حساب"
+                )}
               </Button>
             </CardFooter>
           </form>

@@ -21,6 +21,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyData } from "@/components/PropertyCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +65,8 @@ const PropertyDetail = () => {
             bathrooms: data.bathrooms || 0,
             area: data.area,
             image: data.images && data.images.length > 0 ? data.images[0] : '/placeholder.svg',
-            description: data.description || ""
+            description: data.description || "",
+            images: data.images
           });
         }
       } catch (error) {
@@ -148,46 +156,37 @@ const PropertyDetail = () => {
           </div>
         </div>
         
-        {/* Property gallery */}
-        <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-3">
-              <img 
-                src={property.image} 
-                alt={property.title} 
-                className="w-full h-96 object-cover rounded-lg"
-              />
-            </div>
-            <div className="hidden md:grid grid-rows-2 gap-4">
-              {property.images && property.images.length > 1 ? (
-                <>
-                  <img 
-                    src={property.images[1] || '/placeholder.svg'} 
-                    alt="إضافية" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <img 
-                    src={property.images[2] || '/placeholder.svg'} 
-                    alt="إضافية" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </>
+        {/* Property gallery - replaced with carousel */}
+        <div className="mb-8 relative">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {property.images && property.images.length > 0 ? (
+                property.images.map((image, index) => (
+                  <CarouselItem key={index}>
+                    <div className="p-1">
+                      <img 
+                        src={image} 
+                        alt={`${property.title} - صورة ${index + 1}`}
+                        className="w-full h-[500px] object-cover rounded-lg" 
+                      />
+                    </div>
+                  </CarouselItem>
+                ))
               ) : (
-                <>
-                  <img 
-                    src="/placeholder.svg" 
-                    alt="إضافية" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <img 
-                    src="/placeholder.svg" 
-                    alt="إضافية" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </>
+                <CarouselItem>
+                  <div className="p-1">
+                    <img 
+                      src="/placeholder.svg" 
+                      alt={property.title}
+                      className="w-full h-[500px] object-cover rounded-lg" 
+                    />
+                  </div>
+                </CarouselItem>
               )}
-            </div>
-          </div>
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2" />
+            <CarouselNext className="absolute right-4 top-1/2" />
+          </Carousel>
         </div>
         
         {/* Actions bar */}

@@ -22,44 +22,26 @@ import EditProperty from "./pages/EditProperty";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Create the necessary storage bucket on app initialization if it doesn't exist
+  // Check if the storage bucket exists on app initialization
   useEffect(() => {
-    const createStorageBucket = async () => {
+    const checkStorageBucket = async () => {
       try {
         // Check if the storage bucket exists by attempting to get its public URL
         const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('property_images');
         
-        if (bucketError && bucketError.message.includes('Bucket not found')) {
-          console.log("Bucket doesn't exist, attempting to create it");
-          
-          // Create the SQL policies for the storage bucket for anonymous access
-          // Note: This is needed because we're using public access for property images
-          // In a production app, you would want to limit access to authenticated users
-          
-          // Try to create the bucket
-          const { error } = await supabase.storage.createBucket('property_images', {
-            public: true, // Make the bucket public so we can access the images without authentication
-            fileSizeLimit: 10485760, // 10MB limit
-          });
-          
-          if (error) {
-            console.error("Error creating storage bucket:", error);
-            // Don't throw here, the app can still function without the bucket
-          } else {
-            console.log("Created property_images storage bucket");
-          }
-        } else if (bucketError) {
-          console.error("Error checking bucket:", bucketError);
+        if (bucketError) {
+          console.log("Error checking bucket. The bucket might not exist or you may not have permission to access it.");
+          console.log("This is normal if you're not authenticated or if the bucket hasn't been created yet.");
+          console.log("The bucket will be created automatically when you upload the first property image.");
         } else {
           console.log("property_images bucket already exists");
         }
       } catch (error) {
-        console.error("Error checking/creating storage bucket:", error);
-        // Don't throw here, the app can still function without the bucket
+        console.error("Error checking storage bucket:", error);
       }
     };
     
-    createStorageBucket();
+    checkStorageBucket();
   }, []);
 
   return (

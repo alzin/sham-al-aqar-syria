@@ -1,141 +1,157 @@
 
-import { PropertyData } from "@/components/PropertyCard";
+// This file contains mock data for properties
+// After implementation with Supabase, this file will be used as fallback for demo purposes
 
-// Dummy data for properties
-export const dummyProperties: PropertyData[] = [
+export interface PropertyMockData {
+  id: string;
+  title: string;
+  price: number;
+  priceUnit: string;
+  location: string;
+  city: string;
+  type: string;
+  status: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  image: string;
+  featured?: boolean;
+  images?: string[];
+}
+
+export const propertiesData: PropertyMockData[] = [
   {
-    id: 1,
-    title: "شقة فاخرة بإطلالة على البحر",
-    price: 120000000,
-    priceUnit: "ل.س",
-    location: "كورنيش المزة",
-    city: "دمشق",
-    type: "apartment",
-    status: "sale",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 150,
-    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: true
-  },
-  {
-    id: 2,
-    title: "فيلا مع حديقة واسعة",
-    price: 250000000,
-    priceUnit: "ل.س",
-    location: "التجارة",
+    id: "1",
+    title: "فيلا فاخرة مع حديقة",
+    price: 1200000,
+    priceUnit: "SYP",
+    location: "الشيخ ضاهر",
     city: "اللاذقية",
     type: "villa",
     status: "sale",
     bedrooms: 5,
     bathrooms: 3,
-    area: 400,
-    image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: true
+    area: 350,
+    image: "/assets/properties/villa1.jpg",
+    featured: true,
+    images: ["/assets/properties/villa1.jpg", "/assets/properties/villa1-2.jpg", "/assets/properties/villa1-3.jpg"]
   },
   {
-    id: 3,
-    title: "شقة مفروشة للإيجار",
-    price: 400000,
-    priceUnit: "ل.س/شهر",
-    location: "الفرقان",
-    city: "حلب",
+    id: "2",
+    title: "شقة حديثة وسط المدينة",
+    price: 45000,
+    priceUnit: "SYP",
+    location: "شارع بغداد",
+    city: "دمشق",
     type: "apartment",
     status: "rent",
     bedrooms: 2,
     bathrooms: 1,
-    area: 100,
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: false
+    area: 120,
+    image: "/assets/properties/apartment1.jpg"
   },
   {
-    id: 4,
-    title: "محل تجاري وسط المدينة",
-    price: 90000000,
-    priceUnit: "ل.س",
-    location: "شارع بغداد",
-    city: "دمشق",
-    type: "commercial",
-    status: "sale",
-    bedrooms: 0,
-    bathrooms: 1,
-    area: 70,
-    image: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: false
-  },
-  {
-    id: 5,
-    title: "منزل مستقل مع موقف سيارات",
-    price: 150000000,
-    priceUnit: "ل.س",
-    location: "المهاجرين",
-    city: "دمشق",
+    id: "3",
+    title: "منزل تقليدي مرمم",
+    price: 850000,
+    priceUnit: "SYP",
+    location: "الجميلية",
+    city: "حلب",
     type: "house",
     status: "sale",
     bedrooms: 4,
     bathrooms: 2,
     area: 220,
-    image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: true
+    image: "/assets/properties/house1.jpg",
+    featured: true,
+    images: ["/assets/properties/house1.jpg", "/assets/properties/house1-2.jpg"]
   },
   {
-    id: 6,
+    id: "4",
     title: "أرض استثمارية للبيع",
-    price: 350000000,
-    priceUnit: "ل.س",
-    location: "الحميدية",
-    city: "حمص",
+    price: 1500000,
+    priceUnit: "SYP",
+    location: "طريق المطار",
+    city: "دمشق",
     type: "land",
     status: "sale",
     bedrooms: 0,
     bathrooms: 0,
     area: 1200,
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: false
+    image: "/assets/properties/land1.jpg"
   },
   {
-    id: 7,
-    title: "شقة حديثة في مجمع سكني",
-    price: 95000000,
-    priceUnit: "ل.س",
-    location: "ضاحية قدسيا",
-    city: "دمشق",
-    type: "apartment",
-    status: "sale",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 130,
-    image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: false
-  },
-  {
-    id: 8,
-    title: "مكتب بإطلالة بانورامية",
-    price: 550000,
-    priceUnit: "ل.س/شهر",
+    id: "5",
+    title: "شقة مفروشة للإيجار",
+    price: 55000,
+    priceUnit: "SYP",
     location: "شارع الثورة",
     city: "دمشق",
+    type: "apartment",
+    status: "rent",
+    bedrooms: 3,
+    bathrooms: 2,
+    area: 150,
+    image: "/assets/properties/apartment2.jpg",
+    featured: true,
+    images: ["/assets/properties/apartment2.jpg", "/assets/properties/apartment2-2.jpg"]
+  },
+  {
+    id: "6",
+    title: "مكتب تجاري وسط المدينة",
+    price: 70000,
+    priceUnit: "SYP",
+    location: "شارع الفردوس",
+    city: "حمص",
     type: "commercial",
     status: "rent",
     bedrooms: 0,
     bathrooms: 1,
-    area: 85,
-    image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: true
+    area: 80,
+    image: "/assets/properties/office1.jpg"
   },
   {
-    id: 9,
-    title: "شاليه قرب الشاطئ",
-    price: 75000000,
-    priceUnit: "ل.س",
-    location: "الشاطئ الأزرق",
-    city: "طرطوس",
-    type: "house",
+    id: "7",
+    title: "فيلا مع مسبح خاص",
+    price: 1800000,
+    priceUnit: "SYP",
+    location: "الزبداني",
+    city: "ريف دمشق",
+    type: "villa",
     status: "sale",
+    bedrooms: 6,
+    bathrooms: 4,
+    area: 450,
+    image: "/assets/properties/villa2.jpg",
+    featured: true,
+    images: ["/assets/properties/villa2.jpg", "/assets/properties/villa2-2.jpg"]
+  },
+  {
+    id: "8",
+    title: "شقة قرب البحر",
+    price: 60000,
+    priceUnit: "SYP",
+    location: "الكورنيش",
+    city: "اللاذقية",
+    type: "apartment",
+    status: "rent",
     bedrooms: 2,
     bathrooms: 1,
-    area: 90,
-    image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    featured: false
+    area: 100,
+    image: "/assets/properties/apartment3.jpg"
+  },
+  {
+    id: "9",
+    title: "منزل ريفي مع إطلالة",
+    price: 750000,
+    priceUnit: "SYP",
+    location: "بلودان",
+    city: "ريف دمشق",
+    type: "house",
+    status: "sale",
+    bedrooms: 3,
+    bathrooms: 2,
+    area: 180,
+    image: "/assets/properties/house2.jpg"
   }
 ];

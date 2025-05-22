@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +34,7 @@ const PropertyDetail = () => {
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<any>(null);
   
   useEffect(() => {
     const fetchProperty = async () => {
@@ -88,6 +88,23 @@ const PropertyDetail = () => {
       fetchProperty();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+
+    const onSelect = () => {
+      setActiveImageIndex(carouselApi.selectedScrollSnap());
+    };
+
+    carouselApi.on("select", onSelect);
+    onSelect();
+
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi]);
   
   const handleFavorite = () => {
     toast({
@@ -105,6 +122,12 @@ const PropertyDetail = () => {
           description: "تم نسخ رابط العقار إلى الحافظة!",
         });
       });
+  };
+
+  const goToImage = (index: number) => {
+    if (carouselApi) {
+      carouselApi.scrollTo(index);
+    }
   };
   
   // Handle not found or loading
@@ -166,8 +189,11 @@ const PropertyDetail = () => {
         
         {/* Property gallery - improved carousel */}
         <div className="mb-8">
-          <div className="relative">
-            <Carousel className="w-full">
+          <div className="relative" dir="ltr">
+            <Carousel 
+              className="w-full"
+              setApi={setCarouselApi}
+            >
               <CarouselContent>
                 {property.images && property.images.length > 0 ? (
                   property.images.map((image, index) => {
@@ -204,10 +230,10 @@ const PropertyDetail = () => {
               {property.images && property.images.length > 1 && (
                 <>
                   <CarouselPrevious 
-                    className="right-auto left-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                    className="left-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
                   />
                   <CarouselNext 
-                    className="left-auto right-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                    className="right-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
                   />
                 </>
               )}
@@ -216,14 +242,15 @@ const PropertyDetail = () => {
           
           {/* Current image indicator */}
           {property.images && property.images.length > 1 && (
-            <div className="flex justify-center mt-4 gap-2">
+            <div className="flex justify-center mt-4 gap-2" dir="ltr">
               {property.images.map((_, index) => (
-                <div 
-                  key={index} 
-                  className={`w-2 h-2 rounded-full transition-all ${
+                <button
+                  key={index}
+                  onClick={() => goToImage(index)}
+                  className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
                     activeImageIndex === index 
                       ? "bg-estate-primary" 
-                      : "bg-estate-primary/30"
+                      : "bg-estate-primary/30 hover:bg-estate-primary/50"
                   }`}
                 />
               ))}

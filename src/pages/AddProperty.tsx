@@ -378,23 +378,22 @@ const AddProperty = () => {
                       onChange={handleImageUpload}
                       disabled={uploadingImages}
                     />
-                    <Label htmlFor="images" className="w-full">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="mt-4 w-full"
-                        disabled={uploadingImages}
-                      >
-                        {uploadingImages ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            جاري الرفع... {uploadProgress}%
-                          </>
-                        ) : (
-                          "اختيار الصور"
-                        )}
-                      </Button>
-                    </Label>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="mt-4 w-full"
+                      disabled={uploadingImages}
+                      onClick={() => document.getElementById('images')?.click()}
+                    >
+                      {uploadingImages ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          جاري الرفع... {uploadProgress}%
+                        </>
+                      ) : (
+                        "اختيار الصور"
+                      )}
+                    </Button>
                   </div>
                   
                   {uploadedImages.length > 0 && (

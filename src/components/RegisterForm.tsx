@@ -115,7 +115,7 @@ const RegisterForm = () => {
   
   return (
     <Card className="w-full max-w-md">
-      <Tabs defaultValue="login">
+      <Tabs defaultValue="login" dir="rtl">
         <TabsList className="grid grid-cols-2">
           <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
           <TabsTrigger value="register">إنشاء حساب</TabsTrigger>

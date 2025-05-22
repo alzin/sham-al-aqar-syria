@@ -39,6 +39,7 @@ const PropertyDetail = () => {
     const fetchProperty = async () => {
       setLoading(true);
       try {
+        console.log("Fetching property with ID:", id);
         const { data, error } = await supabase
           .from('properties')
           .select('*')
@@ -52,7 +53,10 @@ const PropertyDetail = () => {
         }
         
         if (data) {
-          setProperty({
+          console.log("Property data received:", data);
+          console.log("Images array:", data.images);
+          
+          const propertyData: PropertyData = {
             id: data.id,
             title: data.title,
             price: data.price,
@@ -64,10 +68,13 @@ const PropertyDetail = () => {
             bedrooms: data.bedrooms || 0,
             bathrooms: data.bathrooms || 0,
             area: data.area,
-            image: data.images && data.images.length > 0 ? data.images[0] : '/placeholder.svg',
+            image: Array.isArray(data.images) && data.images.length > 0 ? data.images[0] : '/placeholder.svg',
             description: data.description || "",
-            images: data.images
-          });
+            images: Array.isArray(data.images) ? [...data.images] : []
+          };
+          
+          console.log("Processed property data:", propertyData);
+          setProperty(propertyData);
         }
       } catch (error) {
         console.error("Error fetching property:", error);
@@ -161,17 +168,20 @@ const PropertyDetail = () => {
           <Carousel className="w-full">
             <CarouselContent>
               {property.images && property.images.length > 0 ? (
-                property.images.map((image, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-1">
-                      <img 
-                        src={image} 
-                        alt={`${property.title} - صورة ${index + 1}`}
-                        className="w-full h-[500px] object-cover rounded-lg" 
-                      />
-                    </div>
-                  </CarouselItem>
-                ))
+                property.images.map((image, index) => {
+                  console.log(`Rendering image ${index}:`, image);
+                  return (
+                    <CarouselItem key={index}>
+                      <div className="p-1">
+                        <img 
+                          src={image} 
+                          alt={`${property.title} - صورة ${index + 1}`}
+                          className="w-full h-[500px] object-cover rounded-lg" 
+                        />
+                      </div>
+                    </CarouselItem>
+                  );
+                })
               ) : (
                 <CarouselItem>
                   <div className="p-1">

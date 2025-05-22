@@ -26,6 +26,7 @@ const App = () => {
   useEffect(() => {
     const checkStorageBucket = async () => {
       try {
+        console.log("Checking if property_images bucket exists...");
         // Check if the storage bucket exists by attempting to get its public URL
         const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('property_images');
         
@@ -33,6 +34,22 @@ const App = () => {
           console.log("Error checking bucket. The bucket might not exist or you may not have permission to access it.");
           console.log("This is normal if you're not authenticated or if the bucket hasn't been created yet.");
           console.log("The bucket will be created automatically when you upload the first property image.");
+          
+          // Try to create the bucket if it doesn't exist
+          try {
+            const { data: createData, error: createError } = await supabase.storage.createBucket('property_images', {
+              public: true,
+              fileSizeLimit: 10485760, // 10MB limit
+            });
+            
+            if (createError) {
+              console.error("Error creating property_images bucket:", createError);
+            } else {
+              console.log("Successfully created property_images bucket");
+            }
+          } catch (createErr) {
+            console.error("Exception when creating bucket:", createErr);
+          }
         } else {
           console.log("property_images bucket already exists");
         }

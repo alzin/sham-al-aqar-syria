@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -48,9 +48,15 @@ const AddProperty = () => {
     location: "",
   });
 
-  // Redirect if not logged in
-  if (!user) {
-    navigate("/login");
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  // If we're still checking auth status, show nothing
+  if (user === null) {
     return null;
   }
 

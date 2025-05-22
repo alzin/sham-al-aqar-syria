@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ const PropertyDetail = () => {
   const { toast } = useToast();
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   
   useEffect(() => {
     const fetchProperty = async () => {
@@ -164,50 +166,53 @@ const PropertyDetail = () => {
         
         {/* Property gallery - improved carousel */}
         <div className="mb-8">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {property.images && property.images.length > 0 ? (
-                property.images.map((image, index) => {
-                  console.log(`Rendering image ${index}:`, image);
-                  return (
-                    <CarouselItem key={index}>
-                      <div className="p-1">
-                        <img 
-                          src={image} 
-                          alt={`${property.title} - صورة ${index + 1}`}
-                          className="w-full h-[500px] object-cover rounded-lg" 
-                          onError={(e) => {
-                            console.log(`Error loading image ${index}:`, image);
-                            e.currentTarget.src = "/placeholder.svg";
-                          }}
-                        />
-                      </div>
-                    </CarouselItem>
-                  );
-                })
-              ) : (
-                <CarouselItem>
-                  <div className="p-1">
-                    <img 
-                      src="/placeholder.svg" 
-                      alt={property.title}
-                      className="w-full h-[500px] object-cover rounded-lg" 
-                    />
-                  </div>
-                </CarouselItem>
+          <div className="relative">
+            <Carousel className="w-full overflow-visible">
+              <CarouselContent>
+                {property.images && property.images.length > 0 ? (
+                  property.images.map((image, index) => {
+                    console.log(`Rendering image ${index}:`, image);
+                    return (
+                      <CarouselItem key={index} onFocus={() => setActiveImageIndex(index)}>
+                        <div className="p-1">
+                          <img 
+                            src={image} 
+                            alt={`${property.title} - صورة ${index + 1}`}
+                            className="w-full h-[500px] object-cover rounded-lg" 
+                            onError={(e) => {
+                              console.log(`Error loading image ${index}:`, image);
+                              e.currentTarget.src = "/placeholder.svg";
+                            }}
+                          />
+                        </div>
+                      </CarouselItem>
+                    );
+                  })
+                ) : (
+                  <CarouselItem>
+                    <div className="p-1">
+                      <img 
+                        src="/placeholder.svg" 
+                        alt={property.title}
+                        className="w-full h-[500px] object-cover rounded-lg" 
+                      />
+                    </div>
+                  </CarouselItem>
+                )}
+              </CarouselContent>
+              
+              {property.images && property.images.length > 1 && (
+                <>
+                  <CarouselPrevious 
+                    className="bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                  />
+                  <CarouselNext 
+                    className="bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                  />
+                </>
               )}
-            </CarouselContent>
-            {property.images && property.images.length > 1 && (
-              <>
-                <CarouselPrevious 
-                  className="z-20 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
-                />
-                <CarouselNext 
-                  className="z-20 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
-                />
-              </>
-            )}
-          </Carousel>
+            </Carousel>
+          </div>
           
           {/* Current image indicator */}
           {property.images && property.images.length > 1 && (
@@ -215,7 +220,11 @@ const PropertyDetail = () => {
               {property.images.map((_, index) => (
                 <div 
                   key={index} 
-                  className="w-2 h-2 rounded-full bg-estate-primary/30"
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    activeImageIndex === index 
+                      ? "bg-estate-primary" 
+                      : "bg-estate-primary/30"
+                  }`}
                 />
               ))}
             </div>

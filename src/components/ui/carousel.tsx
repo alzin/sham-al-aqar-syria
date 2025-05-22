@@ -205,14 +205,17 @@ const CarouselPrevious = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute rounded-full",
+        "absolute rounded-full z-20",
         orientation === "horizontal"
-          ? "left-2 top-1/2 -translate-y-1/2 h-10 w-10"
+          ? "left-3 top-1/2 -translate-y-1/2 h-10 w-10"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90 h-10 w-10",
         className
       )}
       disabled={!canScrollPrev}
-      onClick={scrollPrev}
+      onClick={(e) => {
+        e.stopPropagation();
+        scrollPrev();
+      }}
       {...props}
     >
       <ArrowLeft className="h-5 w-5" />
@@ -234,14 +237,17 @@ const CarouselNext = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute rounded-full",
+        "absolute rounded-full z-20",
         orientation === "horizontal"
-          ? "right-2 top-1/2 -translate-y-1/2 h-10 w-10"
+          ? "right-3 top-1/2 -translate-y-1/2 h-10 w-10"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90 h-10 w-10",
         className
       )}
       disabled={!canScrollNext}
-      onClick={scrollNext}
+      onClick={(e) => {
+        e.stopPropagation();
+        scrollNext();
+      }}
       {...props}
     >
       <ArrowRight className="h-5 w-5" />

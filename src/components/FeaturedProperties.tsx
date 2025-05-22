@@ -3,15 +3,15 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import PropertyCard, { PropertyData } from "./PropertyCard";
-import { dummyProperties } from "@/data/properties";
+import { propertiesData } from "@/data/properties";
 
 const FeaturedProperties = () => {
   const [properties, setProperties] = useState<PropertyData[]>([]);
   
   useEffect(() => {
     // In a real app, this would be an API call
-    // For now, we're using dummy data
-    const featured = dummyProperties.filter(property => property.featured);
+    // For now, we're using mock data
+    const featured = propertiesData.filter(property => property.featured);
     setProperties(featured);
   }, []);
   

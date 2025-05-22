@@ -167,13 +167,13 @@ const PropertyDetail = () => {
         {/* Property gallery - improved carousel */}
         <div className="mb-8">
           <div className="relative">
-            <Carousel className="w-full overflow-visible">
+            <Carousel className="w-full">
               <CarouselContent>
                 {property.images && property.images.length > 0 ? (
                   property.images.map((image, index) => {
                     console.log(`Rendering image ${index}:`, image);
                     return (
-                      <CarouselItem key={index} onFocus={() => setActiveImageIndex(index)}>
+                      <CarouselItem key={index}>
                         <div className="p-1">
                           <img 
                             src={image} 
@@ -204,10 +204,10 @@ const PropertyDetail = () => {
               {property.images && property.images.length > 1 && (
                 <>
                   <CarouselPrevious 
-                    className="bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                    className="right-auto left-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
                   />
                   <CarouselNext 
-                    className="bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                    className="left-auto right-4 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
                   />
                 </>
               )}

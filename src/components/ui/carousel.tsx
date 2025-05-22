@@ -205,9 +205,9 @@ const CarouselPrevious = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute rounded-full z-20",
+        "absolute rounded-full z-30", // Increased z-index
         orientation === "horizontal"
-          ? "left-3 top-1/2 -translate-y-1/2 h-10 w-10"
+          ? "h-10 w-10 top-1/2 -translate-y-1/2" // Removed specific left positioning
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90 h-10 w-10",
         className
       )}
@@ -237,9 +237,9 @@ const CarouselNext = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute rounded-full z-20",
+        "absolute rounded-full z-30", // Increased z-index
         orientation === "horizontal"
-          ? "right-3 top-1/2 -translate-y-1/2 h-10 w-10"
+          ? "h-10 w-10 top-1/2 -translate-y-1/2" // Removed specific right positioning
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90 h-10 w-10",
         className
       )}

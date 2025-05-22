@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PropertyCard, { PropertyData } from "@/components/PropertyCard";
-import { dummyProperties } from "@/data/properties";
+import PropertyCard from "@/components/PropertyCard";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +15,32 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
+
+// Define the property interface to match our database schema
+interface PropertyData {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  location: string;
+  city: string;
+  property_type: string;
+  status: string;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area: number;
+  images: string[];
+}
 
 const Properties = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Filter states
+  const [properties, setProperties] = useState<PropertyData[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<PropertyData[]>([]);
   const [filters, setFilters] = useState({
     keyword: queryParams.get("keyword") || "",
@@ -35,8 +54,36 @@ const Properties = () => {
   
   // Load and filter properties
   useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      setProperties(data || []);
+      // Initialize filtered properties with all properties
+      setFilteredProperties(data || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      setIsLoading(false);
+    }
+  };
+
+  // Apply filters whenever filters change
+  useEffect(() => {
+    if (properties.length === 0) return;
+
     // Apply filters
-    let results = [...dummyProperties];
+    let results = [...properties];
     
     // Keyword filter
     if (filters.keyword) {
@@ -50,7 +97,7 @@ const Properties = () => {
     
     // Type filter
     if (filters.type !== "all") {
-      results = results.filter(property => property.type === filters.type);
+      results = results.filter(property => property.property_type === filters.type);
     }
     
     // Status filter
@@ -60,7 +107,7 @@ const Properties = () => {
     
     // City filter
     if (filters.city !== "all") {
-      results = results.filter(property => property.city.toLowerCase() === filters.city);
+      results = results.filter(property => property.city.toLowerCase() === filters.city.toLowerCase());
     }
     
     // Price range filter
@@ -71,11 +118,13 @@ const Properties = () => {
     // Bedrooms filter
     if (filters.bedrooms !== "all") {
       const bedroomsNum = parseInt(filters.bedrooms);
-      results = results.filter(property => property.bedrooms >= bedroomsNum);
+      results = results.filter(property => 
+        property.bedrooms !== null && property.bedrooms >= bedroomsNum
+      );
     }
     
     setFilteredProperties(results);
-  }, [filters]);
+  }, [filters, properties]);
   
   const handleFilterChange = (key: string, value: string | number | number[]) => {
     setFilters(prev => ({
@@ -102,6 +151,24 @@ const Properties = () => {
       maxPrice: 300000000,
       bedrooms: "all"
     });
+  };
+
+  // Map database properties to PropertyCard format
+  const mapDatabaseToPropertyCard = (property: PropertyData) => {
+    return {
+      id: property.id,
+      title: property.title,
+      price: property.price,
+      priceUnit: property.currency,
+      location: property.location,
+      city: property.city,
+      type: property.property_type,
+      status: property.status,
+      bedrooms: property.bedrooms || 0,
+      bathrooms: property.bathrooms || 0,
+      area: property.area,
+      image: property.images && property.images.length > 0 ? property.images[0] : '/placeholder.svg',
+    };
   };
   
   return (
@@ -264,12 +331,16 @@ const Properties = () => {
               </div>
             </div>
             
-            {filteredProperties.length > 0 ? (
+            {isLoading ? (
+              <div className="flex justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : filteredProperties.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProperties.map((property) => (
                   <PropertyCard 
                     key={property.id} 
-                    property={property}
+                    property={mapDatabaseToPropertyCard(property)}
                   />
                 ))}
               </div>

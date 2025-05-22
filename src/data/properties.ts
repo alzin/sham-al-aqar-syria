@@ -153,5 +153,43 @@ export const propertiesData: PropertyMockData[] = [
     bathrooms: 2,
     area: 180,
     image: "/assets/properties/house2.jpg"
+  },
+  {
+    id: "10",
+    title: "شقة فاخرة جديدة",
+    price: 980000,
+    priceUnit: "SYP",
+    location: "المزة",
+    city: "دمشق",
+    type: "apartment",
+    status: "sale",
+    bedrooms: 4,
+    bathrooms: 3,
+    area: 220,
+    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    featured: true,
+    images: [
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", 
+      "https://images.unsplash.com/photo-1560184897-ae75f418493e?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ]
+  },
+  {
+    id: "11",
+    title: "فيلا مطلة على البحر",
+    price: 2500000,
+    priceUnit: "SYP",
+    location: "بانياس",
+    city: "طرطوس",
+    type: "villa",
+    status: "sale",
+    bedrooms: 5,
+    bathrooms: 4,
+    area: 400,
+    image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    featured: true,
+    images: [
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ]
   }
 ];

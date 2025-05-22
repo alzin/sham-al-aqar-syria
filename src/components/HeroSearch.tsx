@@ -37,11 +37,11 @@ const HeroSearch = () => {
     <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
       <form onSubmit={handleSearch} className="space-y-4">
         <div className="relative">
-          <Search className="absolute right-3 top-3 text-muted-foreground" size={20} />
+          <Search className="absolute left-3 top-3 text-muted-foreground" size={20} />
           <Input
             type="text"
             placeholder="ابحث عن موقع، منطقة، أو اسم عقار..."
-            className="input-search h-12"
+            className="input-search h-12 text-foreground placeholder:text-muted-foreground"
             value={searchParams.keyword}
             onChange={(e) => setSearchParams({...searchParams, keyword: e.target.value})}
           />
@@ -52,10 +52,10 @@ const HeroSearch = () => {
             value={searchParams.type} 
             onValueChange={(value) => setSearchParams({...searchParams, type: value})}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="نوع العقار" />
+            <SelectTrigger className="text-foreground justify-end">
+              <SelectValue placeholder="نوع العقار" className="text-foreground" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent dir="rtl">
               <SelectItem value="all">كل الأنواع</SelectItem>
               <SelectItem value="apartment">شقة</SelectItem>
               <SelectItem value="house">منزل</SelectItem>
@@ -69,10 +69,10 @@ const HeroSearch = () => {
             value={searchParams.status} 
             onValueChange={(value) => setSearchParams({...searchParams, status: value})}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="حالة العقار" />
+            <SelectTrigger className="text-foreground justify-end">
+              <SelectValue placeholder="حالة العقار" className="text-foreground" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent dir="rtl">
               <SelectItem value="all">بيع وإيجار</SelectItem>
               <SelectItem value="sale">للبيع</SelectItem>
               <SelectItem value="rent">للإيجار</SelectItem>
@@ -83,10 +83,10 @@ const HeroSearch = () => {
             value={searchParams.city} 
             onValueChange={(value) => setSearchParams({...searchParams, city: value})}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="المدينة" />
+            <SelectTrigger className="text-foreground justify-end">
+              <SelectValue placeholder="المدينة" className="text-foreground" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent dir="rtl">
               <SelectItem value="all">كل المدن</SelectItem>
               <SelectItem value="damascus">دمشق</SelectItem>
               <SelectItem value="aleppo">حلب</SelectItem>

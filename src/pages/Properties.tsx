@@ -188,7 +188,7 @@ const Properties = () => {
               <div className="mb-6">
                 <label className="block mb-2 font-medium">البحث بالكلمات</label>
                 <div className="relative">
-                  <Search className="absolute right-3 top-3 text-muted-foreground" size={18} />
+                  <Search className="absolute left-3 top-3 text-muted-foreground" size={18} />
                   <Input
                     className="input-search"
                     placeholder="موقع، منطقة..."
@@ -205,10 +205,10 @@ const Properties = () => {
                   value={filters.type} 
                   onValueChange={(value) => handleFilterChange("type", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue placeholder="كل الأنواع" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent dir="rtl">
                     <SelectItem value="all">كل الأنواع</SelectItem>
                     <SelectItem value="apartment">شقة</SelectItem>
                     <SelectItem value="house">منزل</SelectItem>
@@ -226,10 +226,10 @@ const Properties = () => {
                   value={filters.status} 
                   onValueChange={(value) => handleFilterChange("status", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue placeholder="بيع وإيجار" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent dir="rtl">
                     <SelectItem value="all">بيع وإيجار</SelectItem>
                     <SelectItem value="sale">للبيع</SelectItem>
                     <SelectItem value="rent">للإيجار</SelectItem>
@@ -244,10 +244,10 @@ const Properties = () => {
                   value={filters.city} 
                   onValueChange={(value) => handleFilterChange("city", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue placeholder="كل المدن" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent  dir="rtl">
                     <SelectItem value="all">كل المدن</SelectItem>
                     <SelectItem value="دمشق">دمشق</SelectItem>
                     <SelectItem value="حلب">حلب</SelectItem>
@@ -283,10 +283,10 @@ const Properties = () => {
                   value={filters.bedrooms} 
                   onValueChange={(value) => handleFilterChange("bedrooms", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue placeholder="الكل" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent dir="rtl">
                     <SelectItem value="all">الكل</SelectItem>
                     <SelectItem value="1">1+</SelectItem>
                     <SelectItem value="2">2+</SelectItem>

@@ -72,7 +72,7 @@ const Home = () => {
               </Button>
             </Link>
             <Link to="/add-property">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/20">
+              <Button size="lg" variant="outline" className="border-white text-black hover:bg-white/20">
                 أضف عقارك
               </Button>
             </Link>

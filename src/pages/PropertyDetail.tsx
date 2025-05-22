@@ -163,7 +163,7 @@ const PropertyDetail = () => {
           </div>
         </div>
         
-        {/* Property gallery - replaced with carousel */}
+        {/* Property gallery - improved carousel */}
         <div className="mb-8 relative">
           <Carousel className="w-full">
             <CarouselContent>
@@ -177,6 +177,10 @@ const PropertyDetail = () => {
                           src={image} 
                           alt={`${property.title} - صورة ${index + 1}`}
                           className="w-full h-[500px] object-cover rounded-lg" 
+                          onError={(e) => {
+                            console.log(`Error loading image ${index}:`, image);
+                            e.currentTarget.src = "/placeholder.svg";
+                          }}
                         />
                       </div>
                     </CarouselItem>
@@ -194,8 +198,12 @@ const PropertyDetail = () => {
                 </CarouselItem>
               )}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-4 top-1/2" />
-            <CarouselNext className="absolute right-4 top-1/2" />
+            {property.images && property.images.length > 1 && (
+              <>
+                <CarouselPrevious className="absolute left-4 top-1/2 z-10 bg-white/80 hover:bg-white" />
+                <CarouselNext className="absolute right-4 top-1/2 z-10 bg-white/80 hover:bg-white" />
+              </>
+            )}
           </Carousel>
         </div>
         

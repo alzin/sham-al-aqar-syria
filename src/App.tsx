@@ -35,21 +35,8 @@ const App = () => {
           console.log("This is normal if you're not authenticated or if the bucket hasn't been created yet.");
           console.log("The bucket will be created automatically when you upload the first property image.");
           
-          // Try to create the bucket if it doesn't exist
-          try {
-            const { data: createData, error: createError } = await supabase.storage.createBucket('property_images', {
-              public: true,
-              fileSizeLimit: 10485760, // 10MB limit
-            });
-            
-            if (createError) {
-              console.error("Error creating property_images bucket:", createError);
-            } else {
-              console.log("Successfully created property_images bucket");
-            }
-          } catch (createErr) {
-            console.error("Exception when creating bucket:", createErr);
-          }
+          // Note: We won't try to create the bucket here since that requires admin privileges
+          // The bucket should already be created on the Supabase side by an authenticated admin
         } else {
           console.log("property_images bucket already exists");
         }

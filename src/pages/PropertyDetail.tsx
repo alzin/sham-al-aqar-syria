@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -164,7 +163,7 @@ const PropertyDetail = () => {
         </div>
         
         {/* Property gallery - improved carousel */}
-        <div className="mb-8 relative">
+        <div className="mb-8">
           <Carousel className="w-full">
             <CarouselContent>
               {property.images && property.images.length > 0 ? (
@@ -200,11 +199,27 @@ const PropertyDetail = () => {
             </CarouselContent>
             {property.images && property.images.length > 1 && (
               <>
-                <CarouselPrevious className="absolute left-4 top-1/2 z-10 bg-white/80 hover:bg-white" />
-                <CarouselNext className="absolute right-4 top-1/2 z-10 bg-white/80 hover:bg-white" />
+                <CarouselPrevious 
+                  className="z-20 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                />
+                <CarouselNext 
+                  className="z-20 bg-white hover:bg-white shadow-md opacity-80 hover:opacity-100" 
+                />
               </>
             )}
           </Carousel>
+          
+          {/* Current image indicator */}
+          {property.images && property.images.length > 1 && (
+            <div className="flex justify-center mt-4 gap-2">
+              {property.images.map((_, index) => (
+                <div 
+                  key={index} 
+                  className="w-2 h-2 rounded-full bg-estate-primary/30"
+                />
+              ))}
+            </div>
+          )}
         </div>
         
         {/* Actions bar */}
@@ -228,6 +243,7 @@ const PropertyDetail = () => {
           </Button>
         </div>
         
+        {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2">

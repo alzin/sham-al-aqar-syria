@@ -1,16 +1,14 @@
-
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, UploadCloud } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -18,244 +16,192 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+
+const propertyFormSchema = z.object({
+  title: z.string().min(3, {
+    message: "Title must be at least 3 characters.",
+  }),
+  description: z.string().optional(),
+  price: z.number().min(1, {
+    message: "Price must be greater than 0.",
+  }),
+  currency: z.string(),
+  location: z.string().min(3, {
+    message: "Location must be at least 3 characters.",
+  }),
+  city: z.string(),
+  property_type: z.string(),
+  status: z.string(),
+  bedrooms: z.number().nullable(),
+  bathrooms: z.number().nullable(),
+  area: z.number().min(1, {
+    message: "Area must be greater than 0.",
+  }),
+  creationDate: z.date(),
+  images: z.array(z.string()).optional(),
+});
+
+type PropertyFormValues = z.infer<typeof propertyFormSchema>;
 
 const EditProperty = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  
-  const [propertyData, setPropertyData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    area: "",
-    bedrooms: "",
-    bathrooms: "",
-    property_type: "",
-    status: "",
-    city: "",
-    location: "",
+  const [isSubmitting, setSubmitting] = useState(false);
+  const [propertyData, setPropertyData] = useState<PropertyFormValues | null>(null);
+
+  const form = useForm<PropertyFormValues>({
+    resolver: zodResolver(propertyFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      price: 0,
+      currency: "ل.س",
+      location: "",
+      city: "دمشق",
+      property_type: "apartment",
+      status: "sale",
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 50,
+      creationDate: new Date(),
+      images: [],
+    },
   });
 
-  // Redirect if not logged in
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    const fetchPropertyData = async () => {
+      if (!id) {
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "لم يتم العثور على معرف العقار.",
+        });
+        return;
+      }
 
-    // Load property data
+      try {
+        const { data, error } = await supabase
+          .from("properties")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          // Convert the data from the database to the form values
+          const property: PropertyFormValues = {
+            title: data.title,
+            description: data.description || "",
+            price: data.price,
+            currency: data.currency,
+            location: data.location,
+            city: data.city,
+            property_type: data.property_type,
+            status: data.status,
+            bedrooms: data.bedrooms || 1,
+            bathrooms: data.bathrooms || 1,
+            area: data.area,
+            creationDate: new Date(data.creationDate),
+            images: data.images || [],
+          };
+
+          setPropertyData(property);
+          form.reset(property);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "خطأ",
+            description: "لم يتم العثور على العقار.",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching property data:", error);
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "فشل في جلب بيانات العقار.",
+        });
+      }
+    };
+
     fetchPropertyData();
-  }, [user, id]);
+  }, [id, form, toast]);
 
-  const fetchPropertyData = async () => {
-    if (!id) return;
-
+  const handleSubmit = async (data: PropertyFormValues) => {
+    setSubmitting(true);
     try {
-      const { data, error } = await supabase
+      // Convert creation date to string if it's a Date object
+      let creationDate = data.creationDate;
+      if (creationDate instanceof Date) {
+        creationDate = creationDate.toISOString();
+      }
+
+      const { error } = await supabase
         .from("properties")
-        .select("*")
-        .eq("id", id)
-        .single();
+        .update({
+          title: data.title,
+          description: data.description,
+          price: data.price,
+          currency: data.currency,
+          location: data.location,
+          city: data.city,
+          property_type: data.property_type,
+          status: data.status,
+          bedrooms: data.bedrooms,
+          bathrooms: data.bathrooms,
+          area: data.area,
+          creationDate: creationDate,
+          images: data.images,
+        })
+        .eq("id", id);
 
       if (error) {
         throw error;
       }
 
-      if (!data) {
-        toast({
-          title: "عقار غير موجود",
-          description: "لم يتم العثور على العقار المطلوب",
-          variant: "destructive",
-        });
-        navigate("/my-properties");
-        return;
-      }
-
-      // Check if the current user owns this property
-      if (data.user_id !== user?.id) {
-        toast({
-          title: "غير مصرح",
-          description: "لا يمكنك تعديل عقار لا تملكه",
-          variant: "destructive",
-        });
-        navigate("/my-properties");
-        return;
-      }
-
-      // Format the data for the form
-      setPropertyData({
-        title: data.title || "",
-        description: data.description || "",
-        price: data.price.toString() || "",
-        area: data.area.toString() || "",
-        bedrooms: data.bedrooms ? data.bedrooms.toString() : "",
-        bathrooms: data.bathrooms ? data.bathrooms.toString() : "",
-        property_type: data.property_type || "",
-        status: data.status || "",
-        city: data.city || "",
-        location: data.location || "",
-      });
-
-      // Set the uploaded images
-      setUploadedImages(data.images || []);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching property data:", error);
       toast({
-        title: "خطأ في جلب البيانات",
-        description: "حدث خطأ أثناء محاولة جلب بيانات العقار",
-        variant: "destructive",
+        title: "تم تحديث العقار بنجاح",
       });
       navigate("/my-properties");
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setPropertyData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setPropertyData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    setUploadingImages(true);
-    setUploadProgress(0);
-    
-    const uploadedUrls: string[] = [];
-    
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${user?.id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from('property_images')
-          .upload(filePath, file);
-        
-        if (error) throw error;
-        
-        if (data) {
-          const { data: urlData } = supabase.storage
-            .from('property_images')
-            .getPublicUrl(filePath);
-            
-          uploadedUrls.push(urlData.publicUrl);
-        }
-        
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
-      }
-      
-      setUploadedImages(prev => [...prev, ...uploadedUrls]);
-      toast({
-        title: "تم رفع الصور",
-        description: `تم رفع ${uploadedUrls.length} صور بنجاح`,
-      });
-      
-    } catch (error) {
-      console.error("Error uploading images:", error);
-      toast({
-        title: "خطأ في رفع الصور",
-        description: "حدث خطأ أثناء محاولة رفع الصور",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingImages(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (uploadedImages.length === 0) {
-      toast({
-        title: "لا توجد صور",
-        description: "يرجى رفع صورة واحدة على الأقل للعقار",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const { error } = await supabase
-        .from("properties")
-        .update({
-          title: propertyData.title,
-          description: propertyData.description,
-          price: parseFloat(propertyData.price),
-          area: parseFloat(propertyData.area),
-          bedrooms: propertyData.bedrooms ? parseInt(propertyData.bedrooms) : null,
-          bathrooms: propertyData.bathrooms ? parseInt(propertyData.bathrooms) : null,
-          property_type: propertyData.property_type,
-          status: propertyData.status,
-          city: propertyData.city,
-          location: propertyData.location,
-          images: uploadedImages,
-          updated_at: new Date(),
-        })
-        .eq("id", id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "تم تعديل العقار",
-        description: "تم تعديل العقار بنجاح",
-      });
-      
-      // Navigate to the property page or my properties
-      navigate("/my-properties");
-      
     } catch (error) {
       console.error("Error updating property:", error);
       toast({
-        title: "خطأ في تعديل العقار",
-        description: "حدث خطأ أثناء محاولة تعديل العقار",
         variant: "destructive",
+        title: "خطأ في تحديث العقار",
+        description: "حدث خطأ أثناء تحديث العقار. الرجاء المحاولة مرة أخرى.",
       });
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  const removeImage = (indexToRemove: number) => {
-    setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
-  if (isLoading) {
+  if (!id) {
     return (
       <>
         <Header />
-        <div className="container py-16 flex justify-center items-center min-h-[50vh]">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="container py-16 text-center">
+          <h2 className="text-2xl font-bold mb-4">معرف العقار مفقود</h2>
+          <p className="mb-6">
+            عذراً، يبدو أنه تم فقدان معرف العقار. الرجاء المحاولة مرة أخرى من قائمة
+            العقارات الخاصة بك.
+          </p>
+          <Link to="/my-properties">
+            <Button>العودة إلى قائمة العقارات</Button>
+          </Link>
         </div>
         <Footer />
       </>
@@ -265,272 +211,309 @@ const EditProperty = () => {
   return (
     <>
       <Header />
-      
-      <div className="container py-16">
+
+      <div className="container py-8">
         <h1 className="text-3xl font-bold mb-8">تعديل العقار</h1>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Info */}
-            <div className="lg:col-span-2 space-y-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>المعلومات الأساسية</CardTitle>
-                  <CardDescription>أدخل المعلومات الأساسية للعقار</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">عنوان الإعلان*</Label>
-                    <Input
-                      id="title"
-                      name="title"
-                      value={propertyData.title}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">وصف العقار</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={propertyData.description}
-                      onChange={handleInputChange}
-                      rows={5}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="property_type">نوع العقار*</Label>
-                      <Select
-                        value={propertyData.property_type}
-                        onValueChange={(value) => handleSelectChange("property_type", value)}
-                        required
-                      >
-                        <SelectTrigger id="property_type">
-                          <SelectValue placeholder="اختر نوع العقار" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="apartment">شقة</SelectItem>
-                          <SelectItem value="house">منزل</SelectItem>
-                          <SelectItem value="villa">فيلا</SelectItem>
-                          <SelectItem value="land">أرض</SelectItem>
-                          <SelectItem value="commercial">عقار تجاري</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="status">الغرض*</Label>
-                      <Select
-                        value={propertyData.status}
-                        onValueChange={(value) => handleSelectChange("status", value)}
-                        required
-                      >
-                        <SelectTrigger id="status">
-                          <SelectValue placeholder="اختر الغرض" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="sale">للبيع</SelectItem>
-                          <SelectItem value="rent">للإيجار</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>تفاصيل العقار</CardTitle>
-                  <CardDescription>أدخل تفاصيل ومواصفات العقار</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">السعر*</Label>
-                      <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        value={propertyData.price}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="area">المساحة (متر مربع)*</Label>
-                      <Input
-                        id="area"
-                        name="area"
-                        type="number"
-                        value={propertyData.area}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="bedrooms">عدد غرف النوم</Label>
-                      <Input
-                        id="bedrooms"
-                        name="bedrooms"
-                        type="number"
-                        value={propertyData.bedrooms}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="bathrooms">عدد الحمامات</Label>
-                      <Input
-                        id="bathrooms"
-                        name="bathrooms"
-                        type="number"
-                        value={propertyData.bathrooms}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>الموقع</CardTitle>
-                  <CardDescription>أدخل معلومات موقع العقار</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">المدينة*</Label>
-                      <Select
-                        value={propertyData.city}
-                        onValueChange={(value) => handleSelectChange("city", value)}
-                        required
-                      >
-                        <SelectTrigger id="city">
-                          <SelectValue placeholder="اختر المدينة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="دمشق">دمشق</SelectItem>
-                          <SelectItem value="حلب">حلب</SelectItem>
-                          <SelectItem value="حمص">حمص</SelectItem>
-                          <SelectItem value="اللاذقية">اللاذقية</SelectItem>
-                          <SelectItem value="طرطوس">طرطوس</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="location">العنوان التفصيلي*</Label>
-                      <Input
-                        id="location"
-                        name="location"
-                        value={propertyData.location}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>صور العقار*</CardTitle>
-                  <CardDescription>قم برفع صور للعقار</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <UploadCloud className="mx-auto h-10 w-10 text-muted-foreground" />
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      اسحب وأفلت الصور هنا أو انقر للاختيار
-                    </p>
-                    <Input
-                      id="images"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImages}
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="mt-4 w-full"
-                      disabled={uploadingImages}
-                      onClick={() => document.getElementById('images')?.click()}
-                    >
-                      {uploadingImages ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          جاري الرفع... {uploadProgress}%
-                        </>
-                      ) : (
-                        "اختيار الصور"
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {uploadedImages.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-medium mb-2">الصور المرفوعة:</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {uploadedImages.map((url, index) => (
-                          <div key={index} className="relative aspect-video rounded overflow-hidden group">
-                            <img
-                              src={url}
-                              alt={`Uploaded ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="h-8 w-8 rounded-full p-0"
-                                onClick={() => removeImage(index)}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              <Button
-                type="submit"
-                className="w-full bg-estate-primary hover:bg-estate-primary/90"
-                disabled={isSubmitting}
+
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="title"
+            >
+              عنوان العقار
+            </label>
+            <Input
+              id="title"
+              type="text"
+              placeholder="أدخل عنوان العقار"
+              {...form.register("title")}
+            />
+            {form.formState.errors.title && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.title.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="description"
+            >
+              وصف العقار
+            </label>
+            <Textarea
+              id="description"
+              placeholder="أدخل وصفاً مفصلاً للعقار"
+              {...form.register("description")}
+            />
+            {form.formState.errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.description.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="price"
+            >
+              سعر العقار
+            </label>
+            <div className="flex rounded-md shadow-sm">
+              <Input
+                id="price"
+                type="number"
+                placeholder="أدخل سعر العقار"
+                className="ltr:rounded-r-none rtl:rounded-l-none"
+                {...form.register("price", { valueAsNumber: true })}
+              />
+              <Select
+                value={form.watch("currency")}
+                onValueChange={(value) => form.setValue("currency", value)}
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    جاري الحفظ...
-                  </>
-                ) : (
-                  "حفظ التغييرات"
-                )}
-              </Button>
+                <SelectTrigger className="ltr:rounded-l-none rtl:rounded-r-none">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ل.س">ل.س</SelectItem>
+                  <SelectItem value="$">$</SelectItem>
+                  <SelectItem value="€">€</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {form.formState.errors.price && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.price.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="location"
+            >
+              الموقع
+            </label>
+            <Input
+              id="location"
+              type="text"
+              placeholder="أدخل موقع العقار بالتفصيل"
+              {...form.register("location")}
+            />
+            {form.formState.errors.location && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.location.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="city"
+            >
+              المدينة
+            </label>
+            <Select
+              value={form.watch("city")}
+              onValueChange={(value) => form.setValue("city", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="دمشق">دمشق</SelectItem>
+                <SelectItem value="حلب">حلب</SelectItem>
+                <SelectItem value="حمص">حمص</SelectItem>
+                <SelectItem value="اللاذقية">اللاذقية</SelectItem>
+                <SelectItem value="طرطوس">طرطوس</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.city && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.city.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="property_type"
+            >
+              نوع العقار
+            </label>
+            <Select
+              value={form.watch("property_type")}
+              onValueChange={(value) => form.setValue("property_type", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="apartment">شقة</SelectItem>
+                <SelectItem value="house">منزل</SelectItem>
+                <SelectItem value="villa">فيلا</SelectItem>
+                <SelectItem value="land">أرض</SelectItem>
+                <SelectItem value="commercial">تجاري</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.property_type && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.property_type.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="status"
+            >
+              حالة العقار
+            </label>
+            <Select
+              value={form.watch("status")}
+              onValueChange={(value) => form.setValue("status", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sale">للبيع</SelectItem>
+                <SelectItem value="rent">للإيجار</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.status.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                className="block text-sm font-medium leading-none mb-2"
+                htmlFor="bedrooms"
+              >
+                عدد غرف النوم
+              </label>
+              <Input
+                id="bedrooms"
+                type="number"
+                placeholder="أدخل عدد غرف النوم"
+                {...form.register("bedrooms", { valueAsNumber: true })}
+              />
+              {form.formState.errors.bedrooms && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.bedrooms.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                className="block text-sm font-medium leading-none mb-2"
+                htmlFor="bathrooms"
+              >
+                عدد الحمامات
+              </label>
+              <Input
+                id="bathrooms"
+                type="number"
+                placeholder="أدخل عدد الحمامات"
+                {...form.register("bathrooms", { valueAsNumber: true })}
+              />
+              {form.formState.errors.bathrooms && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.bathrooms.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="area"
+            >
+              المساحة (م²)
+            </label>
+            <Input
+              id="area"
+              type="number"
+              placeholder="أدخل مساحة العقار بالمتر المربع"
+              {...form.register("area", { valueAsNumber: true })}
+            />
+            {form.formState.errors.area && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.area.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className="block text-sm font-medium leading-none mb-2"
+              htmlFor="creationDate"
+            >
+              تاريخ الإنشاء
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !form.getValues("creationDate") && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {form.getValues("creationDate") ? (
+                    format(form.getValues("creationDate"), "yyyy-MM-dd")
+                  ) : (
+                    <span>اختر تاريخ</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Controller
+                  control={form.control}
+                  name="creationDate"
+                  render={({ field }) => (
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  )}
+                />
+              </PopoverContent>
+            </Popover>
+            {form.formState.errors.creationDate && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.creationDate.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "جارٍ التحديث..." : "تحديث العقار"}
+            </Button>
           </div>
         </form>
       </div>
-      
+
       <Footer />
     </>
   );

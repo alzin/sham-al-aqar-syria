@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export interface PropertyData {
-  id: string | number;
+  id: string;
   title: string;
   price: number;
   priceUnit: string;
@@ -18,7 +18,9 @@ export interface PropertyData {
   bathrooms: number;
   area: number;
   image: string;
+  description?: string;
   featured?: boolean;
+  images?: string[];
 }
 
 interface PropertyCardProps {

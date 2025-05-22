@@ -19,7 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyData } from "@/components/PropertyCard";
-import { dummyProperties } from "@/data/properties";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,15 +29,48 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // In a real app, this would be an API call
-    // For now, we're using dummy data
-    const foundProperty = dummyProperties.find(p => p.id === Number(id));
+    const fetchProperty = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching property details:", error);
+          setLoading(false);
+          return;
+        }
+        
+        if (data) {
+          setProperty({
+            id: data.id,
+            title: data.title,
+            price: data.price,
+            priceUnit: data.currency,
+            location: data.location,
+            city: data.city,
+            type: data.property_type,
+            status: data.status,
+            bedrooms: data.bedrooms || 0,
+            bathrooms: data.bathrooms || 0,
+            area: data.area,
+            image: data.images && data.images.length > 0 ? data.images[0] : '/placeholder.svg',
+            description: data.description || ""
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching property:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (foundProperty) {
-      setProperty(foundProperty);
+    if (id) {
+      fetchProperty();
     }
-    
-    setLoading(false);
   }, [id]);
   
   const handleFavorite = () => {
@@ -125,16 +159,33 @@ const PropertyDetail = () => {
               />
             </div>
             <div className="hidden md:grid grid-rows-2 gap-4">
-              <img 
-                src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80" 
-                alt="إضافية" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80" 
-                alt="إضافية" 
-                className="w-full h-full object-cover rounded-lg"
-              />
+              {property.images && property.images.length > 1 ? (
+                <>
+                  <img 
+                    src={property.images[1] || '/placeholder.svg'} 
+                    alt="إضافية" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <img 
+                    src={property.images[2] || '/placeholder.svg'} 
+                    alt="إضافية" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </>
+              ) : (
+                <>
+                  <img 
+                    src="/placeholder.svg" 
+                    alt="إضافية" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <img 
+                    src="/placeholder.svg" 
+                    alt="إضافية" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -221,9 +272,9 @@ const PropertyDetail = () => {
                 <TabsContent value="description" className="p-6">
                   <div className="prose max-w-none">
                     <p className="mb-4">
-                      {property.type === 'apartment' ? 
+                      {property.description || (property.type === 'apartment' ? 
                         'شقة فاخرة مجهزة بالكامل تتميز بإطلالات خلابة وموقع استراتيجي في قلب المدينة. الشقة مشمسة طوال اليوم وتتميز بتصميم عصري وتشطيبات راقية.' : 
-                        'عقار مميز بموقع فريد، بُني باستخدام أفضل مواد البناء وبتصميم عصري يلبي احتياجات الأسرة العصرية. يتميز بمساحات واسعة ونوافذ كبيرة توفر إضاءة طبيعية ممتازة.'}
+                        'عقار مميز بموقع فريد، بُني باستخدام أفضل مواد البناء وبتصميم عصري يلبي احتياجات الأسرة العصرية. يتميز بمساحات واسعة ونوافذ كبيرة توفر إضاءة طبيعية ممتازة.')}
                     </p>
                     <p className="mb-4">
                       يقع العقار في منطقة هادئة وراقية، قريب من جميع الخدمات الأساسية مثل المدارس، المتاجر، المطاعم، والمواصلات العامة. كما أنه يوفر سهولة الوصول إلى الطرق الرئيسية في المدينة.
